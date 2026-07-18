@@ -461,7 +461,8 @@ napi_value getFirstDevice(napi_env env, napi_callback_info info) {
   #else
   deckLinkIterator = CreateDeckLinkIteratorInstance();
   #endif
-  if (deckLinkIterator == nullptr) NAPI_THROW_ERROR("Unable to load DeckLinkAPI.");
+  // No driver installed: report no device rather than throwing.
+  if (deckLinkIterator == nullptr) return result;
 
   if (deckLinkIterator->Next(&deckLink) != S_OK) {
     status = napi_get_undefined(env, &result);
@@ -524,7 +525,8 @@ napi_value getDeviceInfo(napi_env env, napi_callback_info info) {
   #else
   deckLinkIterator = CreateDeckLinkIteratorInstance();
   #endif
-  if (deckLinkIterator == nullptr) NAPI_THROW_ERROR("Unable to load DeckLinkAPI.");
+  // No driver installed: report zero devices rather than throwing.
+  if (deckLinkIterator == nullptr) return result;
 
   uint32_t index = 0;
   while (deckLinkIterator->Next(&deckLink) == S_OK) {
