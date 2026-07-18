@@ -1,3 +1,16 @@
+# @spaceagetv/macadam
+
+Prebuilt fork of [Streampunk/macadam](https://github.com/Streampunk/macadam) — all credit to Streampunk Media Ltd for the original work. Changes in this fork:
+
+- Compiles against Node 22 / Electron 22+ ABI (upstream PR #35 finalizer-signature fix included)
+- macOS: compiles the SDK's bundled `DeckLinkAPIDispatch.cpp` instead of linking `DeckLinkAPI.framework`, so the addon loads (and reports zero devices) on machines without Blackmagic Desktop Video installed
+- Ships N-API prebuilds via `prebuildify`/`node-gyp-build` (macOS arm64 + x64, Windows x64) — no compile, no install scripts needed at consume time
+- Removed the `segfault-handler` dependency
+
+Install: `npm install @spaceagetv/macadam`
+
+---
+
 # Macadam
 
 Bindings to link [Node.js](http://nodejs.org/) and the Blackmagic Desktop Video devices, enabling asynchronous capture and playback to and from [Blackmagic Design](https://www.blackmagicdesign.com/) devices via a simple Javascript API. Keying is supported where it is available on the device.
