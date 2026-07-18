@@ -46,7 +46,7 @@
 // if (!isWinOrMac)
 //   throw('Macadam is not currently supported on this platform');
 
-const macadamNative = require('bindings')('macadam');
+const macadamNative = require('node-gyp-build')(__dirname);
 const util = require('util');
 const EventEmitter = require('events');
 

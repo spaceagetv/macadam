@@ -29,4 +29,7 @@ node_modules
 # Gyp project - ignore build folder
 build
 
+# Prebuilt binaries (built in CI, shipped in the npm package only)
+prebuilds
+
 .DS_Store

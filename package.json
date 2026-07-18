@@ -1,7 +1,7 @@
 {
-  "name": "macadam",
-  "version": "2.0.18",
-  "description": "Async node.js interface to Blackmagic Design capture and playback devices.",
+  "name": "@spaceagetv/macadam",
+  "version": "2.1.0",
+  "description": "Async node.js interface to Blackmagic Design capture and playback devices. Prebuilt fork of Streampunk/macadam.",
   "main": "index.js",
   "types": "index.d.ts",
   "keywords": [
@@ -13,29 +13,40 @@
     "video",
     "sound"
   ],
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "binding.gyp",
+    "src",
+    "decklink",
+    "prebuilds"
+  ],
   "scripts": {
-    "install": "node-gyp rebuild",
+    "install": "node-gyp-build",
     "build": "node-gyp rebuild",
+    "prebuild": "prebuildify --napi --strip",
     "test": "tape test/*Spec.js",
     "lint": "eslint index.js **/*.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Streampunk/macadam.git"
+    "url": "git+https://github.com/spaceagetv/macadam.git"
   },
   "author": "Streampunk Media Ltd",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Streampunk/macadam/issues"
+    "url": "https://github.com/spaceagetv/macadam/issues"
   },
-  "homepage": "https://github.com/Streampunk/macadam#readme",
+  "homepage": "https://github.com/spaceagetv/macadam#readme",
   "dependencies": {
-    "bindings": "^1.5.0",
-    "highland": "^2.13.5"
+    "highland": "^2.13.5",
+    "node-gyp-build": "^4.8.4"
   },
   "gypfile": true,
   "devDependencies": {
     "eslint": "^8.10.0",
+    "node-gyp": "^11.2.0",
+    "prebuildify": "^6.0.1",
     "tape": "^5.5.2"
   }
 }

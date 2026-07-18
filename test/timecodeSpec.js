@@ -14,7 +14,7 @@
 */
 
 const test = require('tape');
-const macadam = require('bindings')('macadam');
+const macadam = require('node-gyp-build')(__dirname + '/..');
 const SegfaultHandler = require('segfault-handler');
 SegfaultHandler.registerHandler('crash.log');
 
