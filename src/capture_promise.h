@@ -114,9 +114,4 @@ struct frameData {
   IDeckLinkAudioInputPacket* audioPacket;
 };
 
-struct audioData {
-  IDeckLinkAudioInputPacket* audioPacket;
-  uint32_t dataSize;
-};
-
 #endif // CAPTURE_PROMISE_H

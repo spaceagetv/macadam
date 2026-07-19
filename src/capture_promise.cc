@@ -88,28 +88,6 @@ void finalizeCaptureCarrier(node_api_basic_env env, void* finalize_data, void* f
   delete c;
 }
 
-void finalizeVideoBuffer(node_api_basic_env env, void* finalize_data, void* finalize_hint) {
-  napi_status status;
-  int64_t externalMemory;
-  IDeckLinkVideoInputFrame* video = (IDeckLinkVideoInputFrame*) finalize_hint;
-  status = napi_adjust_external_memory(env, -video->GetRowBytes()*video->GetHeight(),
-    &externalMemory);
-  FLOATING_STATUS;
-  video->Release();
-  // printf("Releasing video frame - ext mem now %li\n", externalMemory);
-}
-
-void finalizeAudioPacket(node_api_basic_env env, void* finalize_data, void* finalize_hint) {
-  napi_status status;
-  int64_t externalMemory = 0;
-  audioData* audio = (audioData*) finalize_hint;
-  status = napi_adjust_external_memory(env, -((int64_t) audio->dataSize), &externalMemory);
-  FLOATING_STATUS;
-  audio->audioPacket->Release();
-  // printf("Releasing audio packet - ext mem now %li\n", externalMemory);
-  free(audio);
-}
-
 napi_value stopStreams(napi_env env, napi_callback_info info) {
   napi_status status;
   napi_value value, param, capture;
@@ -631,10 +609,8 @@ void frameResolver(napi_env env, napi_value jsCb, void* context, void* data) {
   BMDFrameFlags videoFlags;
   BMDTimecodeUserBits userBits;
   int32_t rowBytes, height, sampleFrameCount;
-  int64_t externalMemory;
   void* bytes;
   IDeckLinkTimecode* timecode;
-  audioData* audioFinalizeData;
   HRESULT hresult;
   // TODO : Add support for ancillary data
 
@@ -698,13 +674,11 @@ void frameResolver(napi_env env, napi_value jsCb, void* context, void* data) {
       c->status = MACADAM_CALL_FAILURE;
       REJECT_BAIL;
     }
-    c->status = napi_create_external_buffer(env, rowBytes*height, bytes,
-      finalizeVideoBuffer, frame->videoFrame, &param);
+    // Copy the frame bytes into a V8-owned buffer. External buffers wrapping
+    // DeckLink-owned memory are forbidden by Electron's V8 memory cage.
+    c->status = napi_create_buffer_copy(env, rowBytes*height, bytes, nullptr, &param);
     REJECT_BAIL;
     c->status = napi_set_named_property(env, obj, "data", param);
-    REJECT_BAIL;
-    c->status = napi_adjust_external_memory(env, rowBytes*height, &externalMemory);
-    // printf("External memory %li\n", externalMemory);
     REJECT_BAIL;
 
     c->status = napi_get_boolean(env, true, &param);
@@ -851,17 +825,10 @@ void frameResolver(napi_env env, napi_value jsCb, void* context, void* data) {
         c->status = MACADAM_CALL_FAILURE;
         REJECT_BAIL;
       }
-      audioFinalizeData = (audioData*) malloc(sizeof(audioData));
-      audioFinalizeData->audioPacket = frame->audioPacket;
-      audioFinalizeData->dataSize = sampleFrameCount * crts->sampleByteFactor;
-      c->status = napi_create_external_buffer(env,
-        audioFinalizeData->dataSize, bytes, finalizeAudioPacket, audioFinalizeData, &param);
+      c->status = napi_create_buffer_copy(env,
+        sampleFrameCount * crts->sampleByteFactor, bytes, nullptr, &param);
       REJECT_BAIL;
       c->status = napi_set_named_property(env, obj, "data", param);
-      REJECT_BAIL;
-      c->status = napi_adjust_external_memory(env,
-        audioFinalizeData->dataSize, &externalMemory);
-      // printf("External memory %li\n", externalMemory);
       REJECT_BAIL;
     }
 
@@ -875,6 +842,10 @@ void frameResolver(napi_env env, napi_value jsCb, void* context, void* data) {
 
 bail:
   if (!crts->framePromises.empty()) crts->framePromises.pop();
+  // Frame bytes were copied above, so the DeckLink frame/packet refs taken in
+  // VideoInputFrameArrived can be dropped here on both success and error paths.
+  frame->videoFrame->Release();
+  if (frame->audioPacket != nullptr) frame->audioPacket->Release();
   free(frame);
 
   return;
