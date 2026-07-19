@@ -1,6 +1,6 @@
 {
   "name": "@spaceagetv/macadam",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Async node.js interface to Blackmagic Design capture and playback devices. Prebuilt fork of Streampunk/macadam.",
   "main": "index.js",
   "types": "index.d.ts",
